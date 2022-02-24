@@ -7,13 +7,28 @@
 #
 
 
-
-
 help:
 	@echo 'Makefile for dotfiles'
 	@echo ''
 	@echo 'Usage:'
-	@echo '     make all					install everything'
+	@echo '     make all                    install everything (runs all of the below setups)'
+	@echo '-------------------------------------------------------------------------------------'
+	@echo '     make non-os-specific        install all non-os-specific programs'
+	@echo '     make macos                  install macos programs'
+	@echo '     make nodepackage-setup      install node packages'
+	@echo '     make pythonpackage-setup    install python packages'
+	@echo '     make dotfiles               link dotfiles (.functions, .aliases, motd)'
+	@echo '     make hyper                  setup hyper (terminal emulator) and preferences'
+	@echo '     make hyper-backup           make backup of hyper preferences'
+	@echo '     make zsh                    set up preferences for the zsh shell'
+	@echo '     make zsh-backup             make backup of zsh preferences'
+	@echo '     make git                    set up git to use ssh and configure the git settings'
+	@echo '     make git-backup             make backup of git settings'
+	@echo '     make git-check-params       check that git parameters are set correctly'
+
+
+
+
 
 # VARIABLES
 GO_VERSION = 1.17.6
@@ -28,13 +43,13 @@ all:
 ifeq ($(OS),Darwin)
 	@echo "Running Makefile for MacOS"
 	$(MAKE) macos
-	$(MAKE) non_os_specific
+	$(MAKE) non-os-specific
 else
 	@echo "This will only work on a MacOS machine"
 endif 
 	
 
-non_os_specific: nodepackage_setup pythonpackage_setup dotfiles git hyper zsh 
+non-os-specific: nodepackage-setup pythonpackage-setup dotfiles git hyper zsh 
 
 $(BREW):
 	@echo "Installing Homebrew..."
@@ -48,11 +63,11 @@ macos: $(BREW)
 	brew update
 	brew bundle
 
-nodepackage_setup: 
+nodepackage-setup: 
 	@echo 'Setting up packages for node'
 	npm install -g typescript prettier create-react-app create-react-native-app yarn spaceship-prompt
 
-pythonpackage_setup:
+pythonpackage-setup:
 	@echo 'Setting up packages for python'
 	pip3 install speedtest-cli virtualenv
 	pip3 install thefuck --user
@@ -69,19 +84,30 @@ else
 	ln -s $(DOTFILE_SOURCE) $(DOTFILE_FOLDER)
 endif 
 
-hyper_backup:
-	@echo 'Backing up hyper'
-ifneq ($(wildcard ~/.hyper.js),) 
-	mv ~/.hyper.js ~/.hyper.js.bak
-endif 
-
-hyper: hyper_backup
+hyper: hyper-backup
 	@echo 'Setting up hyper'
 ifneq ($(wildcard $(DOTFILE_FOLDER)/.hyper.js),) 
 	ln -s $(DOTFILE_FOLDER)/.hyper.js ~/.hyper.js
 endif
 
-zsh_backup:
+hyper-backup:
+	@echo 'Backing up hyper'
+ifneq ($(wildcard ~/.hyper.js),) 
+	mv ~/.hyper.js ~/.hyper.js.bak
+endif 
+
+zsh: zsh-backup 
+	git clone --recursive https://github.com/sorin-ionescu/prezto.git ~/.zprezto
+	git clone --recurse-submodules https://github.com/belak/prezto-contrib ~/.zprezto/contrib
+	git clone https://github.com/zsh-users/zsh-autosuggestions ~/.zsh/zsh-autosuggestions
+ifneq ($(wildcard $(DOTFILE_FOLDER)/.zshrc),) 
+	ln -s $(DOTFILE_FOLDER)/.zshrc ~/.zshrc
+endif
+ifneq ($(wildcard $(DOTFILE_FOLDER)/.zpreztorc),) 
+	ln -s $(DOTFILE_FOLDER)/.zpreztorc ~/.zpreztorc
+endif 
+
+zsh-backup:
 	@echo 'Backing up zsh'
 ifneq ($(wildcard ~/.zshrc),) 
 	mv ~/.zshrc ~/.zshrc.bak
@@ -96,19 +122,8 @@ ifneq ($(wildcard ~/.zsh/zsh-autosuggestions),)
 	rm -rf ~/.zsh/zsh-autosuggestions
 endif
 
-zsh: zsh_backup 
-	git clone --recursive https://github.com/sorin-ionescu/prezto.git ~/.zprezto
-	git clone --recurse-submodules https://github.com/belak/prezto-contrib ~/.zprezto/contrib
-	git clone https://github.com/zsh-users/zsh-autosuggestions ~/.zsh/zsh-autosuggestions
-ifneq ($(wildcard $(DOTFILE_FOLDER)/.zshrc),) 
-	ln -s $(DOTFILE_FOLDER)/.zshrc ~/.zshrc
-endif
-ifneq ($(wildcard $(DOTFILE_FOLDER)/.zpreztorc),) 
-	ln -s $(DOTFILE_FOLDER)/.zpreztorc ~/.zpreztorc
-endif 
-
 # set up git globabls
-git: check-git-params git-backup
+git: git-check-params git-backup
 	@echo 'Setting up gitignore'
 ifneq ($(wildcard $(DOTFILE_FOLDER)/.gitignore_global),) 
 	ln -s $(DOTFILE_FOLDER)/.gitignore_global ~/.gitignore_global
@@ -130,6 +145,6 @@ ifneq ($(wildcard ~/.gitconfig),)
 	mv ~/.gitconfig ~/.gitconfig.bak
 endif
 
-check-git-params:
+git-check-params:
 	test -n "${GITHUB_EMAIL}" # $$GITHUB_EMAIL is required
 	test -n "${GITHUB_NAME}" # $$GITHUB_NAME is required
