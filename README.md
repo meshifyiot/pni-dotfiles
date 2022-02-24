@@ -16,7 +16,7 @@ It clones the github repository and runs `make all` on the makefile in the repos
 
 This will set up:
 
-- Brew, a MacOS package manager, and a set of recommended MacOS applications
+- Brew, a MacOS package manager, and a set of recommended MacOS applications (see `Brewfile` for a list of packages)
 - Node packages
 - Python Packages
 - Some good aliases and functions to have at your disposal on the command line
