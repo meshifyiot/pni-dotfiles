@@ -133,6 +133,7 @@ endif
 	git config --global --add url."git@github.com:".insteadOf "https://github.com/"
 	git config --global user.name "${GITHUB_NAME}"
 	git config --global user.email ${GITHUB_EMAIL}
+	git config --global core.excludesFile ~/.gitignore_global 
 	./github_ssh.sh ${GITHUB_EMAIL}
 
 git-backup:
