@@ -18,8 +18,6 @@ help:
 	@echo '     make nodepackage-setup      install node packages'
 	@echo '     make pythonpackage-setup    install python packages'
 	@echo '     make dotfiles               link dotfiles (.functions, .aliases, motd)'
-	@echo '     make hyper                  setup hyper (terminal emulator) and preferences'
-	@echo '     make hyper-backup           make backup of hyper preferences'
 	@echo '     make zsh                    set up preferences for the zsh shell'
 	@echo '     make zsh-backup             make backup of zsh preferences'
 	@echo '     make git                    set up git to use ssh and configure the git settings'
@@ -49,7 +47,7 @@ else
 endif 
 	
 
-non-os-specific: nodepackage-setup pythonpackage-setup dotfiles git hyper zsh 
+non-os-specific: nodepackage-setup pythonpackage-setup dotfiles git zsh 
 
 $(BREW):
 	@echo "Installing Homebrew..."
@@ -82,18 +80,6 @@ ifneq ($(wildcard $(DOTFILE_FOLDER)/.),)
 	@echo 'dotfile folder already exists'
 else
 	ln -s $(DOTFILE_SOURCE) $(DOTFILE_FOLDER)
-endif 
-
-hyper: hyper-backup
-	@echo 'Setting up hyper'
-ifneq ($(wildcard $(DOTFILE_FOLDER)/.hyper.js),) 
-	ln -s $(DOTFILE_FOLDER)/.hyper.js ~/.hyper.js
-endif
-
-hyper-backup:
-	@echo 'Backing up hyper'
-ifneq ($(wildcard ~/.hyper.js),) 
-	mv ~/.hyper.js ~/.hyper.js.bak
 endif 
 
 zsh: zsh-backup 
@@ -149,3 +135,10 @@ endif
 git-check-params:
 	test -n "${GITHUB_EMAIL}" # $$GITHUB_EMAIL is required
 	test -n "${GITHUB_NAME}" # $$GITHUB_NAME is required
+
+nvim: nvim-backup
+	@echo 'Setting up nvim'
+	[ -d ~/.config/nvim ] || mkdir -p ~/.config/nvim; cp -r ./nvim/* ~/.config/nvim; nvim --headless -c 'autocmd User PackerComplete quitall' -c 'PackerSync'
+
+nvim-backup:
+	[ -d ~/.config/nvim ] && rm -rf ~/.config/nvim.bak; mv ~/.config/nvim ~/.config/nvim.bak || echo 'no backup of nvim needed'
